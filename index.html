@@ -570,17 +570,24 @@
 
   /* Print styles: only receipt box prints */
   @media print{
+    @page{
+      size:58mm auto;   /* default 58mm; di-override dinamis oleh JS lewat <style> sisipan sesuai pilihan kertas */
+      margin:0;
+    }
+    html, body{ width:58mm; margin:0; padding:0; background:#fff; }
     body *{ visibility:hidden; }
     .receipt-box, .receipt-box *{ visibility:visible; }
     .receipt-box{
       position:absolute;
       top:0; left:0;
-      width:100%;
-      max-width:100%;
+      width:58mm;
+      max-width:58mm;
       box-shadow:none;
       max-height:none;
+      padding:4mm 3mm;
+      font-size:11px;
     }
-    .receipt-actions{ display:none; }
+    .receipt-actions, .paper-width-toggle{ display:none; }
   }
 
   ::-webkit-scrollbar{ width:8px; }
@@ -1096,6 +1103,35 @@ document.getElementById('btnReset').addEventListener('click', () => {
 });
 
 /* =================================================================
+   PRINT BROWSER DENGAN UKURAN KERTAS DINAMIS (58mm / 80mm)
+   @page size tidak bisa diubah lewat class biasa, jadi kita sisipkan
+   <style> baru ke <head> setiap kali print, sesuai lebar kertas yang
+   dipilih kasir. Style ini otomatis dibuang lagi setelah print selesai.
+================================================================= */
+function printStrukSesuaiKertas() {
+  const lebarMm = paperWidth === 48 ? '80mm' : '58mm';
+
+  const styleEl = document.createElement('style');
+  styleEl.id = 'dynamicPrintStyle';
+  styleEl.textContent = `
+    @media print{
+      @page{ size:${lebarMm} auto; margin:0; }
+      html, body{ width:${lebarMm} !important; }
+      .receipt-box{ width:${lebarMm} !important; max-width:${lebarMm} !important; }
+    }
+  `;
+  document.head.appendChild(styleEl);
+
+  window.print();
+
+  // bersihkan style sisipan setelah dialog print ditutup, supaya tidak menumpuk
+  setTimeout(() => {
+    const el = document.getElementById('dynamicPrintStyle');
+    if (el) el.remove();
+  }, 1000);
+}
+
+/* =================================================================
    TAMPILKAN STRUK (MODAL)
 ================================================================= */
 
@@ -1154,7 +1190,7 @@ function tampilkanStruk(trx) {
 
   document.getElementById('receiptOverlay').classList.add('show');
 
-  document.getElementById('btnPrintStruk').addEventListener('click', () => window.print());
+  document.getElementById('btnPrintStruk').addEventListener('click', () => printStrukSesuaiKertas());
   document.getElementById('btnCloseStruk').addEventListener('click', () => {
     document.getElementById('receiptOverlay').classList.remove('show');
   });
