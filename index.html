@@ -358,6 +358,20 @@
     color:var(--primary-dark);
   }
 
+  .btn-bayar-pas{
+    width:100%;
+    margin-top:8px;
+    padding:12px;
+    background:var(--green-dark);
+    color:#fff;
+    border-radius:10px;
+    font-weight:700;
+    font-size:15px;
+    transition:background .12s;
+  }
+  .btn-bayar-pas:hover{ background:var(--green); }
+  .btn-bayar-pas:active{ transform:scale(0.98); }
+
   .kembalian-box{
     margin-top:14px;
     background:var(--green);
@@ -541,11 +555,6 @@
   .btn-print:hover{ background:var(--primary-dark); }
   .btn-close-receipt{ background:var(--bg); color:var(--text); }
   .btn-close-receipt:hover{ background:var(--border); }
-  .btn-thermal{ background:var(--green); color:#fff; }
-  .btn-thermal:hover{ background:var(--green-dark); }
-
-  .receipt-actions{ flex-wrap:wrap; }
-  .receipt-actions button{ min-width:100px; }
 
   .paper-width-toggle{
     display:flex;
@@ -568,7 +577,7 @@
     border-color:var(--primary);
   }
 
-  /* Print styles: only receipt box prints */
+  /* Print styles: only receipt box prints, ukuran kertas thermal (bukan A4) */
   @media print{
     @page{
       size:58mm auto;   /* default 58mm; di-override dinamis oleh JS lewat <style> sisipan sesuai pilihan kertas */
@@ -664,6 +673,7 @@
           <button data-add="20000">+20rb</button>
           <button data-add="50000">+50rb</button>
         </div>
+        <button class="btn-bayar-pas" id="btnBayarPas">💵 Bayar Pas (Tanpa Kembalian)</button>
       </div>
 
       <div class="kembalian-box" id="kembalianBox">
@@ -701,40 +711,38 @@
    DATA & STATE
 ================================================================= */
 
-// Daftar menu tetap (sesuai permintaan)
+// Daftar menu (sudah diperluas sesuai menu warung yang sebenarnya)
 const MENU = [
-  { id: 'm1', nama: 'Nasi Goreng Ayam',             harga: 15000 },
-  { id: 'm2', nama: 'Nasi Goreng Sosis',            harga: 16000 },
-  { id: 'm3', nama: 'Nasi Goreng Bakso',            harga: 16000 },
-  { id: 'm4', nama: 'Nasi Goreng Ati Ampela',       harga: 17000  },
-  { id: 'm5', nama: 'Nasi Goreng Spesial',          harga: 25000  },
-  { id: 'm6', nama: 'Mie Goreng Ayam',              harga: 16000 },
-  { id: 'm7', nama: 'Mie Goreng Sosis',             harga: 17000 },
-  { id: 'm8', nama: 'Mie Goreng Bakso',             harga: 17000 },
-  { id: 'm9', nama: 'Mie Goreng Ati Ampela',        harga: 17000  },
-  { id: 'm10', nama: 'Mie Goreng Spesial',          harga: 26000  },
-  { id: 'm11', nama: 'Bihun Goreng Ayam',           harga: 16000 },
-  { id: 'm12', nama: 'Bihun Goreng Sosis',          harga: 17000 },
-  { id: 'm13', nama: 'Bihun Goreng Bakso',          harga: 17000 },
-  { id: 'm14', nama: 'Bihun Goreng Ati Ampela',     harga: 17000  },
-  { id: 'm15', nama: 'Bihun Goreng Spesial',        harga: 26000  },
-  { id: 'm16', nama: 'Mie rebus Ayam',              harga: 16000 },
-  { id: 'm17', nama: 'Mie rebus Sosis',             harga: 17000 },
-  { id: 'm18', nama: 'Mie rebus Bakso',             harga: 17000 },
-  { id: 'm19', nama: 'Mie rebus Ati Ampela',        harga: 17000  },
-  { id: 'm20', nama: 'Mie rebus Spesial',           harga: 26000  },
-  { id: 'm21', nama: 'kwetiaw goreng Ayam',         harga: 16000 },
-  { id: 'm22', nama: 'kwetiaw goreng Sosis',        harga: 17000 },
-  { id: 'm23', nama: 'kwetiaw goreng Bakso',        harga: 17000 },
-  { id: 'm24', nama: 'kwetiaw goreng Ati Ampela',   harga: 17000  },
-  { id: 'm25', nama: 'kwetiaw goreng Spesial',      harga: 26000  },
-  { id: 'm26', nama: 'kwetiaw rebus Ayam',          harga: 16000 },
-  { id: 'm27', nama: 'kwetiaw rebus Sosis',         harga: 17000 },
-  { id: 'm28', nama: 'kwetiaw rebus Bakso',         harga: 17000 },
-  { id: 'm29', nama: 'kwetiaw rebus Ati Ampela',    harga: 17000  },
-  { id: 'm30', nama: 'tambahan telur',              harga: 5000  },
-  
-
+  { id: 'm1',  nama: 'Nasi Goreng Ayam',           harga: 15000 },
+  { id: 'm2',  nama: 'Nasi Goreng Sosis',          harga: 16000 },
+  { id: 'm3',  nama: 'Nasi Goreng Bakso',          harga: 16000 },
+  { id: 'm4',  nama: 'Nasi Goreng Ati Ampela',     harga: 17000 },
+  { id: 'm5',  nama: 'Nasi Goreng Spesial',        harga: 25000 },
+  { id: 'm6',  nama: 'Mie Goreng Ayam',            harga: 16000 },
+  { id: 'm7',  nama: 'Mie Goreng Sosis',           harga: 17000 },
+  { id: 'm8',  nama: 'Mie Goreng Bakso',           harga: 17000 },
+  { id: 'm9',  nama: 'Mie Goreng Ati Ampela',      harga: 17000 },
+  { id: 'm10', nama: 'Mie Goreng Spesial',         harga: 26000 },
+  { id: 'm11', nama: 'Bihun Goreng Ayam',          harga: 16000 },
+  { id: 'm12', nama: 'Bihun Goreng Sosis',         harga: 17000 },
+  { id: 'm13', nama: 'Bihun Goreng Bakso',         harga: 17000 },
+  { id: 'm14', nama: 'Bihun Goreng Ati Ampela',    harga: 17000 },
+  { id: 'm15', nama: 'Bihun Goreng Spesial',       harga: 26000 },
+  { id: 'm16', nama: 'Mie Rebus Ayam',             harga: 16000 },
+  { id: 'm17', nama: 'Mie Rebus Sosis',            harga: 17000 },
+  { id: 'm18', nama: 'Mie Rebus Bakso',            harga: 17000 },
+  { id: 'm19', nama: 'Mie Rebus Ati Ampela',       harga: 17000 },
+  { id: 'm20', nama: 'Mie Rebus Spesial',          harga: 26000 },
+  { id: 'm21', nama: 'Kwetiau Goreng Ayam',        harga: 16000 },
+  { id: 'm22', nama: 'Kwetiau Goreng Sosis',       harga: 17000 },
+  { id: 'm23', nama: 'Kwetiau Goreng Bakso',       harga: 17000 },
+  { id: 'm24', nama: 'Kwetiau Goreng Ati Ampela',  harga: 17000 },
+  { id: 'm25', nama: 'Kwetiau Goreng Spesial',     harga: 26000 },
+  { id: 'm26', nama: 'Kwetiau Rebus Ayam',         harga: 16000 },
+  { id: 'm27', nama: 'Kwetiau Rebus Sosis',        harga: 17000 },
+  { id: 'm28', nama: 'Kwetiau Rebus Bakso',        harga: 17000 },
+  { id: 'm29', nama: 'Kwetiau Rebus Ati Ampela',   harga: 17000 },
+  { id: 'm30', nama: 'Tambahan Telur',             harga: 5000  },
 ];
 
 // Keranjang: array of { id, nama, harga, qty, manual: true/false }
@@ -870,9 +878,13 @@ function addToCart(nama, harga, isManual) {
   renderCart();
   showToast(`${nama} ditambahkan`, 'success');
 
-  // Auto focus ke input pembayaran setelah memilih menu (mempercepat transaksi)
-  const bayarInput = document.getElementById('bayarInput');
-  bayarInput.focus();
+  // Catatan: auto-focus ke input bayar TIDAK dilakukan di sini.
+  // Di mobile, focus() pada input memicu keyboard muncul dan browser
+  // otomatis scroll ke bawah supaya input terlihat — ini mengganggu
+  // saat kasir masih ingin memilih beberapa item sekaligus dari menu.
+  // Auto-focus tetap dilakukan di titik yang menandakan "sudah selesai
+  // pilih menu" (Enter di search bar, tombol quick-cash/Bayar Pas, dan
+  // setelah tambah item manual).
 }
 
 function changeQty(id, delta) {
@@ -988,6 +1000,21 @@ document.querySelectorAll('.quick-cash button').forEach(btn => {
     updateKembalian();
     bayarInput.focus();
   });
+});
+
+// Tombol "Bayar Pas": isi uang diterima persis sebesar total, kembalian otomatis Rp0.
+// Berguna untuk pelanggan yang bayar pas tanpa perlu kembalian, jadi kasir tidak perlu hitung manual.
+document.getElementById('btnBayarPas').addEventListener('click', () => {
+  if (cart.length === 0) {
+    showToast('Keranjang masih kosong, belum ada total untuk dibayar pas.', 'error');
+    return;
+  }
+  const total = getTotalHarga();
+  const bayarInput = document.getElementById('bayarInput');
+  bayarInput.value = total;
+  updateKembalian();
+  bayarInput.focus();
+  showToast('Uang diisi pas sesuai total. Kembalian Rp0.', 'success');
 });
 
 /* =================================================================
@@ -1184,7 +1211,7 @@ function tampilkanStruk(trx) {
 
   box.innerHTML = `
     <h2>NASI GORENG AMBYAR</h2>
-    <div class="toko-sub">Kasir Sederhana &middot; Struk Transaksi</div>
+    <div class="toko-sub">Enak Dan Mengenyangkan &middot; Struk Transaksi</div>
     <div class="receipt-row">
       <span>${formatTanggalSingkat(trx.waktu)}</span>
       <span>${formatWaktu(trx.waktu)}</span>
@@ -1207,8 +1234,6 @@ function tampilkanStruk(trx) {
     <div class="line"></div>
     <div class="receipt-footer">Terima kasih telah berbelanja 🙏<br>Sampai jumpa lagi!</div>
     <div class="receipt-actions">
-      <button class="btn-thermal" id="btnCopyThermal">📋 Copy Teks Struk</button>
-      <button class="btn-print" id="btnShareThermal">📲 Share (opsional)</button>
       <button class="btn-print" id="btnPrintStruk">🖨️ Print Browser</button>
       <button class="btn-close-receipt" id="btnCloseStruk">Tutup</button>
     </div>
@@ -1225,8 +1250,6 @@ function tampilkanStruk(trx) {
   document.getElementById('btnCloseStruk').addEventListener('click', () => {
     document.getElementById('receiptOverlay').classList.remove('show');
   });
-  document.getElementById('btnCopyThermal').addEventListener('click', () => copyTeksStruk(generateTeksStrukThermal(trx, paperWidth)));
-  document.getElementById('btnShareThermal').addEventListener('click', () => kirimKePrinterThermal(trx));
 
   // toggle lebar kertas
   box.querySelectorAll('.paper-width-toggle button').forEach(btn => {
@@ -1238,111 +1261,6 @@ function tampilkanStruk(trx) {
       showToast(`Lebar kertas diatur ke ${paperWidth === 32 ? '58mm' : '80mm'}`, 'info');
     });
   });
-}
-
-/* =================================================================
-   GENERATE TEKS STRUK UNTUK THERMAL PRINTER (plain text, monospace)
-   Disusun agar rapi di kertas 58mm (32 karakter) atau 80mm (48 karakter),
-   sesuai lebar yang dipilih kasir. Banyak app printer (termasuk RPP02N)
-   menerima teks polos ini melalui menu "import text" / paste / share.
-================================================================= */
-function padKananKiri(kiri, kanan, lebar) {
-  // Susun 2 kolom rata kiri & rata kanan dalam satu baris selebar `lebar`
-  kiri = String(kiri);
-  kanan = String(kanan);
-  const spasi = lebar - kiri.length - kanan.length;
-  if (spasi < 1) {
-    // kalau kepanjangan, potong kolom kiri supaya tidak pecah baris
-    const kiriDipotong = kiri.slice(0, Math.max(0, lebar - kanan.length - 1));
-    return kiriDipotong + ' '.repeat(Math.max(1, lebar - kiriDipotong.length - kanan.length)) + kanan;
-  }
-  return kiri + ' '.repeat(spasi) + kanan;
-}
-
-function tengahkanTeks(teks, lebar) {
-  teks = String(teks);
-  if (teks.length >= lebar) return teks.slice(0, lebar);
-  const totalSpasi = lebar - teks.length;
-  const kiri = Math.floor(totalSpasi / 2);
-  return ' '.repeat(kiri) + teks;
-}
-
-function generateTeksStrukThermal(trx, lebar) {
-  const garis = '-'.repeat(lebar);
-  let baris = [];
-
-  baris.push(tengahkanTeks('NASI GORENG AMBYAR', lebar));
-  baris.push(tengahkanTeks('Struk Transaksi', lebar));
-  baris.push(garis);
-  baris.push(padKananKiri(formatTanggalSingkat(trx.waktu), formatWaktu(trx.waktu), lebar));
-  baris.push(garis);
-
-  trx.items.forEach(item => {
-    baris.push(item.nama); // nama item baris sendiri, supaya nama panjang tidak terpotong
-    const detailKiri = `${item.qty} x ${formatRupiah(item.harga)}`;
-    const detailKanan = formatRupiah(item.qty * item.harga);
-    baris.push(padKananKiri(detailKiri, detailKanan, lebar));
-  });
-
-  baris.push(garis);
-  baris.push(padKananKiri('TOTAL', formatRupiah(trx.total), lebar));
-  baris.push(padKananKiri('Tunai', formatRupiah(trx.bayar), lebar));
-  baris.push(padKananKiri('Kembali', formatRupiah(trx.kembalian), lebar));
-  baris.push(garis);
-  baris.push(tengahkanTeks('Terima kasih!', lebar));
-  baris.push(tengahkanTeks('Sampai jumpa lagi', lebar));
-  baris.push(''); // baris kosong, ruang potong kertas
-  baris.push('');
-
-  return baris.join('\n');
-}
-
-/* =================================================================
-   COPY TEKS STRUK KE CLIPBOARD (jalur utama untuk RPP02N & sejenisnya)
-   Printer Bluetooth Classic (SPP) seperti RPP02N hanya bisa terhubung
-   ke SATU app pada satu waktu (app resminya). Karena itu, teks struk
-   tidak dikirim lewat koneksi Bluetooth langsung dari browser, tapi
-   disalin ke clipboard agar kasir tinggal PASTE di menu
-   "Import/Paste Text" pada app RPP02N, lalu printer mencetaknya.
-================================================================= */
-async function copyTeksStruk(teks) {
-  try {
-    await navigator.clipboard.writeText(teks);
-    showToast('Teks struk disalin! Buka app RPP02N → menu "Import/Paste Text" → Paste → Print.', 'success');
-  } catch (err) {
-    showToast('Gagal menyalin otomatis. Tahan tombol di area struk untuk salin manual.', 'error');
-  }
-}
-
-/* =================================================================
-   KIRIM STRUK VIA WEB SHARE API (opsional, cadangan)
-   Catatan: ini BUKAN koneksi Bluetooth ke printer. Share hanya
-   meneruskan teks ke app lain yang terdaftar sebagai "Share Target"
-   di Android. Beberapa app printer thermal tidak mendaftarkan diri
-   di menu share, sehingga teks bisa gagal diterima sebagai print job
-   walau app-nya muncul di daftar. Kalau ini tidak berhasil, gunakan
-   tombol "Copy Teks Struk" lalu paste manual di app printer.
-================================================================= */
-async function kirimKePrinterThermal(trx) {
-  const teks = generateTeksStrukThermal(trx, paperWidth);
-
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: 'Struk Nasi Goreng Ambyar',
-        text: teks
-      });
-      showToast('Struk dibagikan. Kalau printer tidak mencetak, pakai "Copy Teks Struk".', 'info');
-      return;
-    } catch (err) {
-      if (err && err.name === 'AbortError') {
-        return; // user sengaja batal, tidak perlu toast error
-      }
-    }
-  }
-
-  // Fallback: copy ke clipboard kalau Web Share tidak didukung
-  await copyTeksStruk(teks);
 }
 
 // klik di luar struk -> tutup modal
