@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kasir - Nasi Goreng Ambyar</title>
+<style>
+  /* ===========================================================
+     RESET & VARIABLES
+  =========================================================== */
+  :root{
+    --primary:#e85d2c;       /* oranye khas warung makan, hangat */
+    --primary-dark:#c44a1f;
+    --primary-light:#fff1ea;
+    --green:#2e9e5b;
+    --green-dark:#23803f;
+    --red:#e2483d;
+    --red-dark:#c23a31;
+    --bg:#f4f5f7;
+    --card:#ffffff;
+    --text:#222831;
+    --text-soft:#6b7280;
+    --border:#e5e7eb;
+    --radius:14px;
+    --shadow:0 2px 10px rgba(0,0,0,0.06);
+    --shadow-lg:0 8px 30px rgba(0,0,0,0.12);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    font-family:'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    font-size:16px;
+  }
+
+  button{ font-family:inherit; cursor:pointer; border:none; }
+  input{ font-family:inherit; }
+
+  /* ===========================================================
+     HEADER
+  =========================================================== */
+  .app-header{
+    background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:#fff;
+    padding:14px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    box-shadow:var(--shadow);
+    position:sticky;
+    top:0;
+    z-index:50;
+  }
+  .app-header h1{
+    margin:0;
+    font-size:22px;
+    font-weight:800;
+    letter-spacing:0.3px;
+  }
+  .app-header .sub{
+    font-size:13px;
+    opacity:0.9;
+    margin-top:2px;
+  }
+  .clock-box{
+    text-align:right;
+    font-weight:600;
+    font-size:16px;
+    background:rgba(255,255,255,0.15);
+    padding:8px 14px;
+    border-radius:10px;
+    line-height:1.3;
+  }
+  .clock-box .time{ font-size:20px; font-weight:800; }
+
+  /* ===========================================================
+     LAYOUT
+  =========================================================== */
+  .layout{
+    display:flex;
+    gap:16px;
+    padding:16px;
+    max-width:1300px;
+    margin:0 auto;
+    align-items:flex-start;
+  }
+  .col-left{ flex:1.4; min-width:0; }
+  .col-right{ flex:1; min-width:330px; }
+
+  @media (max-width: 880px){
+    .layout{ flex-direction:column; }
+    .col-right{ min-width:0; width:100%; }
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    margin:0 0 12px 0;
+    font-size:17px;
+    font-weight:800;
+    color:var(--primary-dark);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  /* ===========================================================
+     SEARCH
+  =========================================================== */
+  .search-wrap{ position:relative; margin-bottom:14px; }
+  .search-wrap input{
+    width:100%;
+    padding:14px 14px 14px 42px;
+    border:2px solid var(--border);
+    border-radius:12px;
+    font-size:17px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  .search-wrap input:focus{ border-color:var(--primary); }
+  .search-wrap .icon{
+    position:absolute;
+    left:14px; top:50%;
+    transform:translateY(-50%);
+    font-size:18px;
+    color:var(--text-soft);
+    pointer-events:none;
+  }
+
+  /* ===========================================================
+     MENU GRID
+  =========================================================== */
+  .menu-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(180px,1fr));
+    gap:12px;
+  }
+  .menu-item{
+    background:var(--primary-light);
+    border:2px solid transparent;
+    border-radius:12px;
+    padding:14px;
+    text-align:left;
+    transition:transform .1s, box-shadow .15s, border-color .15s;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-height:90px;
+  }
+  .menu-item:hover{
+    border-color:var(--primary);
+    box-shadow:var(--shadow);
+  }
+  .menu-item:active{ transform:scale(0.97); }
+  .menu-item .nama{
+    font-weight:700;
+    font-size:16px;
+    line-height:1.3;
+    color:var(--text);
+  }
+  .menu-item .harga{
+    font-weight:800;
+    font-size:17px;
+    color:var(--primary-dark);
+  }
+  .menu-empty{
+    grid-column:1/-1;
+    text-align:center;
+    color:var(--text-soft);
+    padding:30px 0;
+    font-size:15px;
+  }
+
+  /* ===========================================================
+     MANUAL ITEM FORM
+  =========================================================== */
+  .manual-form{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .manual-form .field{
+    flex:1;
+    min-width:140px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .manual-form label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--text-soft);
+  }
+  .manual-form input{
+    padding:12px;
+    border:2px solid var(--border);
+    border-radius:10px;
+    font-size:16px;
+    outline:none;
+  }
+  .manual-form input:focus{ border-color:var(--primary); }
+  .btn-manual{
+    background:var(--primary);
+    color:#fff;
+    border-radius:10px;
+    padding:12px 18px;
+    font-weight:700;
+    font-size:15px;
+    align-self:flex-end;
+    white-space:nowrap;
+    transition:background .15s;
+  }
+  .btn-manual:hover{ background:var(--primary-dark); }
+
+  /* ===========================================================
+     CART
+  =========================================================== */
+  .cart-list{
+    max-height:340px;
+    overflow-y:auto;
+    margin-bottom:10px;
+  }
+  .cart-empty{
+    text-align:center;
+    color:var(--text-soft);
+    padding:30px 10px;
+    font-size:15px;
+  }
+  .cart-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 4px;
+    border-bottom:1px solid var(--border);
+  }
+  .cart-item:last-child{ border-bottom:none; }
+  .cart-item .info{ flex:1; min-width:0; }
+  .cart-item .info .nm{
+    font-weight:700;
+    font-size:15.5px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .cart-item .info .pr{
+    font-size:13px;
+    color:var(--text-soft);
+  }
+  .qty-ctrl{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--bg);
+    border-radius:8px;
+    padding:4px;
+  }
+  .qty-ctrl button{
+    width:28px; height:28px;
+    border-radius:6px;
+    background:var(--card);
+    box-shadow:var(--shadow);
+    font-weight:800;
+    font-size:16px;
+    color:var(--primary-dark);
+  }
+  .qty-ctrl button:hover{ background:var(--primary-light); }
+  .qty-ctrl .qty-val{
+    min-width:26px;
+    text-align:center;
+    font-weight:700;
+    font-size:15px;
+  }
+  .item-subtotal{
+    min-width:85px;
+    text-align:right;
+    font-weight:800;
+    font-size:15px;
+    color:var(--text);
+  }
+  .btn-del{
+    width:30px; height:30px;
+    border-radius:8px;
+    background:#fdeceb;
+    color:var(--red);
+    font-size:16px;
+    font-weight:800;
+    flex-shrink:0;
+  }
+  .btn-del:hover{ background:var(--red); color:#fff; }
+
+  /* ===========================================================
+     SUMMARY
+  =========================================================== */
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    padding:6px 2px;
+    font-size:15px;
+    color:var(--text-soft);
+  }
+  .summary-row.total{
+    font-size:20px;
+    font-weight:800;
+    color:var(--primary-dark);
+    border-top:2px dashed var(--border);
+    margin-top:8px;
+    padding-top:12px;
+  }
+
+  .pay-section{ margin-top:14px; }
+  .pay-section label{
+    font-size:13px;
+    font-weight:700;
+    color:var(--text-soft);
+    display:block;
+    margin-bottom:6px;
+  }
+  #bayarInput{
+    width:100%;
+    padding:16px;
+    font-size:22px;
+    font-weight:700;
+    border:2px solid var(--border);
+    border-radius:12px;
+    outline:none;
+    text-align:right;
+  }
+  #bayarInput:focus{ border-color:var(--primary); }
+
+  .quick-cash{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+  }
+  .quick-cash button{
+    flex:1;
+    padding:10px 4px;
+    background:var(--bg);
+    border:2px solid var(--border);
+    border-radius:10px;
+    font-weight:700;
+    font-size:14px;
+    color:var(--text);
+    transition:all .12s;
+  }
+  .quick-cash button:hover{
+    background:var(--primary-light);
+    border-color:var(--primary);
+    color:var(--primary-dark);
+  }
+
+  .kembalian-box{
+    margin-top:14px;
+    background:var(--green);
+    color:#fff;
+    border-radius:14px;
+    padding:14px;
+    text-align:center;
+  }
+  .kembalian-box.kurang{ background:var(--red); }
+  .kembalian-box .label{
+    font-size:13px;
+    opacity:0.9;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+  }
+  .kembalian-box .nilai{
+    font-size:30px;
+    font-weight:900;
+    margin-top:2px;
+  }
+
+  .action-buttons{
+    display:flex;
+    gap:10px;
+    margin-top:16px;
+  }
+  .btn-main{
+    flex:1;
+    padding:16px;
+    border-radius:12px;
+    font-size:17px;
+    font-weight:800;
+  }
+  .btn-bayar{
+    background:var(--green);
+    color:#fff;
+  }
+  .btn-bayar:hover{ background:var(--green-dark); }
+  .btn-bayar:disabled{
+    background:#c9ccd1;
+    cursor:not-allowed;
+  }
+  .btn-reset{
+    background:#fdeceb;
+    color:var(--red);
+    flex:0.5;
+  }
+  .btn-reset:hover{ background:var(--red); color:#fff; }
+
+  .hint{
+    font-size:12px;
+    color:var(--text-soft);
+    text-align:center;
+    margin-top:10px;
+    line-height:1.5;
+  }
+  .hint kbd{
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:1px 6px;
+    font-family:monospace;
+  }
+
+  /* ===========================================================
+     TOAST NOTIFICATION
+  =========================================================== */
+  #toastWrap{
+    position:fixed;
+    top:18px;
+    right:18px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    z-index:999;
+  }
+  .toast{
+    background:var(--text);
+    color:#fff;
+    padding:12px 18px;
+    border-radius:10px;
+    box-shadow:var(--shadow-lg);
+    font-size:14px;
+    font-weight:600;
+    opacity:0;
+    transform:translateX(40px);
+    transition:all .25s ease;
+    max-width:280px;
+  }
+  .toast.show{ opacity:1; transform:translateX(0); }
+  .toast.success{ background:var(--green-dark); }
+  .toast.error{ background:var(--red-dark); }
+  .toast.info{ background:var(--primary-dark); }
+
+  /* ===========================================================
+     RECEIPT MODAL
+  =========================================================== */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:200;
+    padding:16px;
+  }
+  .modal-overlay.show{ display:flex; }
+  .receipt-box{
+    background:#fff;
+    width:100%;
+    max-width:360px;
+    max-height:90vh;
+    overflow-y:auto;
+    border-radius:14px;
+    padding:24px 20px;
+    font-family:'Courier New', monospace;
+    box-shadow:var(--shadow-lg);
+  }
+  .receipt-box h2{
+    text-align:center;
+    margin:0 0 2px 0;
+    font-size:20px;
+    letter-spacing:1px;
+  }
+  .receipt-box .toko-sub{
+    text-align:center;
+    font-size:12px;
+    color:#555;
+    margin-bottom:10px;
+  }
+  .receipt-box .line{
+    border-top:1px dashed #999;
+    margin:10px 0;
+  }
+  .receipt-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    margin-bottom:2px;
+  }
+  .receipt-item-row{
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .receipt-item-row .nm-row{
+    display:flex;
+    justify-content:space-between;
+    font-weight:700;
+  }
+  .receipt-item-row .detail-row{
+    display:flex;
+    justify-content:space-between;
+    color:#555;
+  }
+  .receipt-row.total{
+    font-weight:800;
+    font-size:16px;
+    margin-top:6px;
+  }
+  .receipt-footer{
+    text-align:center;
+    font-size:12px;
+    margin-top:14px;
+    color:#555;
+  }
+  .receipt-actions{
+    display:flex;
+    gap:8px;
+    margin-top:18px;
+  }
+  .receipt-actions button{
+    flex:1;
+    padding:12px;
+    border-radius:10px;
+    font-weight:700;
+    font-size:14px;
+  }
+  .btn-print{ background:var(--primary); color:#fff; }
+  .btn-print:hover{ background:var(--primary-dark); }
+  .btn-close-receipt{ background:var(--bg); color:var(--text); }
+  .btn-close-receipt:hover{ background:var(--border); }
+  .btn-thermal{ background:var(--green); color:#fff; }
+  .btn-thermal:hover{ background:var(--green-dark); }
+
+  .receipt-actions{ flex-wrap:wrap; }
+  .receipt-actions button{ min-width:100px; }
+
+  .paper-width-toggle{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-top:12px;
+    font-size:11px;
+  }
+  .paper-width-toggle button{
+    padding:5px 10px;
+    border-radius:6px;
+    background:var(--bg);
+    border:1px solid var(--border);
+    font-weight:700;
+    color:var(--text-soft);
+  }
+  .paper-width-toggle button.active{
+    background:var(--primary);
+    color:#fff;
+    border-color:var(--primary);
+  }
+
+  /* Print styles: only receipt box prints */
+  @media print{
+    body *{ visibility:hidden; }
+    .receipt-box, .receipt-box *{ visibility:visible; }
+    .receipt-box{
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      max-width:100%;
+      box-shadow:none;
+      max-height:none;
+    }
+    .receipt-actions{ display:none; }
+  }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background:#ccc; border-radius:4px; }
+</style>
+</head>
+<body>
+
+<!-- ============================ HEADER ============================ -->
+<header class="app-header">
+  <div>
+    <h1>🍛 Nasi Goreng Ambyar</h1>
+    <div class="sub">Aplikasi Kasir Sederhana</div>
+  </div>
+  <div class="clock-box">
+    <div class="date" id="headerDate">-</div>
+    <div class="time" id="headerTime">-</div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ============================ KOLOM KIRI: MENU ============================ -->
+  <div class="col-left">
+
+    <div class="card">
+      <h2>🔍 Cari & Pilih Menu</h2>
+      <div class="search-wrap">
+        <span class="icon">🔎</span>
+        <input type="text" id="searchInput" placeholder="Ketik nama menu, lalu Enter untuk tambah cepat..." autocomplete="off">
+      </div>
+      <div class="menu-grid" id="menuGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>➕ Tambah Item Manual</h2>
+      <div class="manual-form">
+        <div class="field">
+          <label for="manualNama">Nama Item</label>
+          <input type="text" id="manualNama" placeholder="Contoh: Kerupuk, Biaya Antar...">
+        </div>
+        <div class="field" style="max-width:150px;">
+          <label for="manualHarga">Harga (Rp)</label>
+          <input type="number" id="manualHarga" placeholder="0" min="0">
+        </div>
+        <button class="btn-manual" id="btnTambahManual">Tambah Item Manual</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================ KOLOM KANAN: KERANJANG ============================ -->
+  <div class="col-right">
+    <div class="card">
+      <h2>🛒 Keranjang</h2>
+      <div class="cart-list" id="cartList">
+        <div class="cart-empty">Keranjang masih kosong.<br>Pilih menu di sebelah kiri.</div>
+      </div>
+
+      <div class="summary-row">
+        <span>Jumlah Item</span>
+        <span id="totalQty">0</span>
+      </div>
+      <div class="summary-row total">
+        <span>Total Bayar</span>
+        <span id="totalHarga">Rp0</span>
+      </div>
+
+      <div class="pay-section">
+        <label for="bayarInput">💰 Uang Diterima</label>
+        <input type="number" id="bayarInput" placeholder="0" min="0">
+        <div class="quick-cash">
+          <button data-add="10000">+10rb</button>
+          <button data-add="20000">+20rb</button>
+          <button data-add="50000">+50rb</button>
+        </div>
+      </div>
+
+      <div class="kembalian-box" id="kembalianBox">
+        <div class="label">Kembalian</div>
+        <div class="nilai" id="kembalianNilai">Rp0</div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn-main btn-reset" id="btnReset">🗑️ Reset</button>
+        <button class="btn-main btn-bayar" id="btnBayar" disabled>✅ Proses Bayar</button>
+      </div>
+
+      <div class="hint">
+        <kbd>Enter</kbd> tambah item pertama hasil cari &nbsp;|&nbsp;
+        <kbd>+</kbd>/<kbd>-</kbd> ubah qty item terakhir &nbsp;|&nbsp;
+        <kbd>Ctrl</kbd>+<kbd>Enter</kbd> proses bayar
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================ TOAST CONTAINER ============================ -->
+<div id="toastWrap"></div>
+
+<!-- ============================ MODAL STRUK ============================ -->
+<div class="modal-overlay" id="receiptOverlay">
+  <div class="receipt-box" id="receiptBox">
+    <!-- diisi via JS -->
+  </div>
+</div>
+
+<script>
+/* =================================================================
+   DATA & STATE
+================================================================= */
+
+// Daftar menu tetap (sesuai permintaan)
+const MENU = [
+  { id: 'm1', nama: 'Nasi Goreng Original', harga: 15000 },
+  { id: 'm2', nama: 'Nasi Goreng Spesial',  harga: 20000 },
+  { id: 'm3', nama: 'Nasi Goreng Seafood',  harga: 25000 },
+  { id: 'm4', nama: 'Es Teh',               harga: 5000  },
+  { id: 'm5', nama: 'Es Jeruk',             harga: 7000  },
+];
+
+// Keranjang: array of { id, nama, harga, qty, manual: true/false }
+let cart = [];
+
+// localStorage key
+const STORAGE_KEY = 'kasir_ambyar_cart';
+
+/* =================================================================
+   UTIL: FORMAT RUPIAH
+================================================================= */
+function formatRupiah(angka) {
+  angka = Math.round(Number(angka) || 0);
+  return 'Rp' + angka.toLocaleString('id-ID');
+}
+
+/* =================================================================
+   UTIL: TOAST NOTIFICATION (pengganti alert bawaan browser)
+================================================================= */
+function showToast(message, type = 'info') {
+  const wrap = document.getElementById('toastWrap');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = message;
+  wrap.appendChild(toast);
+
+  // trigger animasi masuk
+  requestAnimationFrame(() => toast.classList.add('show'));
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 250);
+  }, 2200);
+}
+
+/* =================================================================
+   JAM & TANGGAL REAL-TIME
+================================================================= */
+const HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+function formatTanggalLengkap(d) {
+  // Contoh: Kamis, 25 Juni 2026
+  return `${HARI[d.getDay()]}, ${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
+}
+function formatTanggalSingkat(d) {
+  // Contoh: 25 Juni 2026
+  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
+}
+function formatWaktu(d) {
+  const jam = String(d.getHours()).padStart(2, '0');
+  const menit = String(d.getMinutes()).padStart(2, '0');
+  return `${jam}:${menit}`;
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('headerDate').textContent = formatTanggalLengkap(now);
+  document.getElementById('headerTime').textContent = formatWaktu(now);
+}
+updateClock();
+setInterval(updateClock, 1000 * 10); // update tiap 10 detik, cukup untuk jam:menit
+
+/* =================================================================
+   RENDER MENU (dengan dukungan pencarian)
+================================================================= */
+function renderMenu(filter = '') {
+  const grid = document.getElementById('menuGrid');
+  const keyword = filter.trim().toLowerCase();
+  const filtered = MENU.filter(m => m.nama.toLowerCase().includes(keyword));
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="menu-empty">Menu "${escapeHtml(filter)}" tidak ditemukan.<br>Gunakan form "Tambah Item Manual" di bawah jika ini item baru.</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(m => `
+    <button class="menu-item" data-id="${m.id}">
+      <span class="nama">${escapeHtml(m.nama)}</span>
+      <span class="harga">${formatRupiah(m.harga)}</span>
+    </button>
+  `).join('');
+
+  // pasang event click ke tiap kartu menu
+  grid.querySelectorAll('.menu-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = MENU.find(m => m.id === btn.dataset.id);
+      addToCart(item.nama, item.harga, false);
+    });
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* =================================================================
+   KERANJANG: TAMBAH / UBAH QTY / HAPUS
+================================================================= */
+function addToCart(nama, harga, isManual) {
+  nama = nama.trim();
+  harga = Number(harga);
+
+  if (!nama) {
+    showToast('Nama item tidak boleh kosong.', 'error');
+    return;
+  }
+  if (isNaN(harga) || harga < 0) {
+    showToast('Harga tidak valid.', 'error');
+    return;
+  }
+
+  // Jika item dengan nama & harga sama sudah ada di keranjang, tambah qty saja
+  const existing = cart.find(c => c.nama.toLowerCase() === nama.toLowerCase() && c.harga === harga);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({
+      id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      nama,
+      harga,
+      qty: 1,
+      manual: isManual
+    });
+  }
+
+  saveCart();
+  renderCart();
+  showToast(`${nama} ditambahkan`, 'success');
+
+  // Auto focus ke input pembayaran setelah memilih menu (mempercepat transaksi)
+  const bayarInput = document.getElementById('bayarInput');
+  bayarInput.focus();
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(c => c.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) {
+    cart = cart.filter(c => c.id !== id);
+    showToast(`${item.nama} dihapus dari keranjang`, 'info');
+  }
+  saveCart();
+  renderCart();
+}
+
+function removeItem(id) {
+  const item = cart.find(c => c.id === id);
+  cart = cart.filter(c => c.id !== id);
+  saveCart();
+  renderCart();
+  if (item) showToast(`${item.nama} dihapus`, 'info');
+}
+
+/* =================================================================
+   RENDER KERANJANG & RINGKASAN
+================================================================= */
+function renderCart() {
+  const list = document.getElementById('cartList');
+
+  if (cart.length === 0) {
+    list.innerHTML = `<div class="cart-empty">Keranjang masih kosong.<br>Pilih menu di sebelah kiri.</div>`;
+  } else {
+    list.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div class="info">
+          <div class="nm">${escapeHtml(item.nama)}${item.manual ? ' <span style="font-size:11px;color:#e85d2c;font-weight:700;">(manual)</span>' : ''}</div>
+          <div class="pr">${formatRupiah(item.harga)} / item</div>
+        </div>
+        <div class="qty-ctrl">
+          <button data-action="minus" data-id="${item.id}">−</button>
+          <span class="qty-val">${item.qty}</span>
+          <button data-action="plus" data-id="${item.id}">+</button>
+        </div>
+        <div class="item-subtotal">${formatRupiah(item.harga * item.qty)}</div>
+        <button class="btn-del" data-action="del" data-id="${item.id}" title="Hapus item">✕</button>
+      </div>
+    `).join('');
+
+    // pasang event listener untuk setiap kontrol
+    list.querySelectorAll('[data-action="plus"]').forEach(b =>
+      b.addEventListener('click', () => changeQty(b.dataset.id, 1)));
+    list.querySelectorAll('[data-action="minus"]').forEach(b =>
+      b.addEventListener('click', () => changeQty(b.dataset.id, -1)));
+    list.querySelectorAll('[data-action="del"]').forEach(b =>
+      b.addEventListener('click', () => removeItem(b.dataset.id)));
+  }
+
+  updateSummary();
+}
+
+function getTotalQty() {
+  return cart.reduce((sum, c) => sum + c.qty, 0);
+}
+function getTotalHarga() {
+  return cart.reduce((sum, c) => sum + (c.harga * c.qty), 0);
+}
+
+function updateSummary() {
+  const total = getTotalHarga();
+  document.getElementById('totalQty').textContent = getTotalQty();
+  document.getElementById('totalHarga').textContent = formatRupiah(total);
+  updateKembalian();
+
+  // tombol bayar aktif hanya jika ada item di keranjang
+  document.getElementById('btnBayar').disabled = cart.length === 0;
+}
+
+/* =================================================================
+   PEMBAYARAN & KEMBALIAN
+================================================================= */
+function updateKembalian() {
+  const total = getTotalHarga();
+  const bayarInput = document.getElementById('bayarInput');
+  const bayar = Number(bayarInput.value) || 0;
+  const kembalian = bayar - total;
+
+  const box = document.getElementById('kembalianBox');
+  const nilai = document.getElementById('kembalianNilai');
+  const label = box.querySelector('.label');
+
+  if (bayar === 0 && total > 0) {
+    box.classList.remove('kurang');
+    label.textContent = 'Kembalian';
+    nilai.textContent = formatRupiah(0);
+  } else if (kembalian < 0) {
+    box.classList.add('kurang');
+    label.textContent = 'Uang Kurang';
+    nilai.textContent = formatRupiah(Math.abs(kembalian));
+  } else {
+    box.classList.remove('kurang');
+    label.textContent = 'Kembalian';
+    nilai.textContent = formatRupiah(kembalian);
+  }
+}
+
+document.getElementById('bayarInput').addEventListener('input', updateKembalian);
+
+// Tombol quick cash: menambah nominal ke input bayar (bukan mengganti, supaya bisa dikombinasikan)
+document.querySelectorAll('.quick-cash button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const bayarInput = document.getElementById('bayarInput');
+    const current = Number(bayarInput.value) || 0;
+    bayarInput.value = current + Number(btn.dataset.add);
+    updateKembalian();
+    bayarInput.focus();
+  });
+});
+
+/* =================================================================
+   TAMBAH ITEM MANUAL
+================================================================= */
+document.getElementById('btnTambahManual').addEventListener('click', tambahItemManual);
+
+function tambahItemManual() {
+  const namaInput = document.getElementById('manualNama');
+  const hargaInput = document.getElementById('manualHarga');
+
+  const nama = namaInput.value.trim();
+  const harga = Number(hargaInput.value);
+
+  if (!nama) {
+    showToast('Nama item manual harus diisi.', 'error');
+    namaInput.focus();
+    return;
+  }
+  if (!hargaInput.value || isNaN(harga) || harga < 0) {
+    showToast('Harga item manual tidak valid.', 'error');
+    hargaInput.focus();
+    return;
+  }
+
+  addToCart(nama, harga, true);
+
+  // reset form
+  namaInput.value = '';
+  hargaInput.value = '';
+  namaInput.focus(); // supaya bisa lanjut input item manual lain dengan cepat
+}
+
+// Enter pada field manual juga langsung menambahkan
+document.getElementById('manualNama').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('manualHarga').focus(); }
+});
+document.getElementById('manualHarga').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); tambahItemManual(); }
+});
+
+/* =================================================================
+   PENCARIAN MENU
+================================================================= */
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', () => renderMenu(searchInput.value));
+
+// Enter di search bar -> tambahkan menu hasil pencarian teratas (mempercepat transaksi)
+searchInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const keyword = searchInput.value.trim().toLowerCase();
+    const found = MENU.find(m => m.nama.toLowerCase().includes(keyword));
+    if (found) {
+      addToCart(found.nama, found.harga, false);
+      searchInput.value = '';
+      renderMenu('');
+    } else {
+      showToast('Menu tidak ditemukan. Gunakan form item manual.', 'error');
+    }
+  }
+});
+
+/* =================================================================
+   SHORTCUT KEYBOARD GLOBAL: +/- untuk qty item terakhir, Ctrl+Enter bayar
+================================================================= */
+document.addEventListener('keydown', e => {
+  const activeTag = document.activeElement.tagName;
+  const isTypingInTextOrNumber = (activeTag === 'INPUT' && document.activeElement.type === 'text');
+
+  // Ctrl + Enter -> proses pembayaran (berlaku di mana saja, kecuali modal struk terbuka)
+  if (e.ctrlKey && e.key === 'Enter') {
+    e.preventDefault();
+    prosesBayar();
+    return;
+  }
+
+  // +/- untuk qty item TERAKHIR di keranjang, supaya tidak mengganggu saat mengetik harga manual
+  if ((e.key === '+' || e.key === '-') && !isTypingInTextOrNumber) {
+    if (cart.length === 0) return;
+    e.preventDefault();
+    const lastItem = cart[cart.length - 1];
+    changeQty(lastItem.id, e.key === '+' ? 1 : -1);
+  }
+});
+
+/* =================================================================
+   PROSES PEMBAYARAN & STRUK
+================================================================= */
+document.getElementById('btnBayar').addEventListener('click', prosesBayar);
+
+let lastTransaction = null; // simpan data transaksi terakhir untuk struk
+
+function prosesBayar() {
+  if (cart.length === 0) {
+    showToast('Keranjang masih kosong.', 'error');
+    return;
+  }
+
+  const total = getTotalHarga();
+  const bayarInput = document.getElementById('bayarInput');
+  const bayar = Number(bayarInput.value) || 0;
+
+  if (bayar < total) {
+    showToast('Uang bayar belum cukup!', 'error');
+    bayarInput.focus();
+    return;
+  }
+
+  const kembalian = bayar - total;
+  const waktuTransaksi = new Date();
+
+  lastTransaction = {
+    items: cart.map(c => ({ ...c })),
+    total,
+    bayar,
+    kembalian,
+    waktu: waktuTransaksi
+  };
+
+  tampilkanStruk(lastTransaction);
+  showToast('Transaksi berhasil!', 'success');
+
+  // reset keranjang & pembayaran untuk transaksi berikutnya
+  cart = [];
+  bayarInput.value = '';
+  saveCart();
+  renderCart();
+  updateKembalian();
+}
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  if (cart.length === 0) {
+    showToast('Keranjang sudah kosong.', 'info');
+    return;
+  }
+  cart = [];
+  document.getElementById('bayarInput').value = '';
+  saveCart();
+  renderCart();
+  updateKembalian();
+  showToast('Keranjang direset.', 'info');
+});
+
+/* =================================================================
+   TAMPILKAN STRUK (MODAL)
+================================================================= */
+
+// Lebar kertas thermal dalam jumlah karakter (mengikuti standar font monospace thermal printer)
+// 32 karakter -> umum untuk kertas 58mm, 48 karakter -> umum untuk kertas 80mm
+let paperWidth = Number(localStorage.getItem('kasir_paper_width')) || 32;
+
+function tampilkanStruk(trx) {
+  const box = document.getElementById('receiptBox');
+
+  const itemsHtml = trx.items.map(item => `
+    <div class="receipt-item-row">
+      <div class="nm-row"><span>${escapeHtml(item.nama)}</span></div>
+      <div class="detail-row">
+        <span>${item.qty} x ${formatRupiah(item.harga)}</span>
+        <span>${formatRupiah(item.qty * item.harga)}</span>
+      </div>
+    </div>
+  `).join('');
+
+  box.innerHTML = `
+    <h2>NASI GORENG AMBYAR</h2>
+    <div class="toko-sub">Kasir Sederhana &middot; Struk Transaksi</div>
+    <div class="receipt-row">
+      <span>${formatTanggalSingkat(trx.waktu)}</span>
+      <span>${formatWaktu(trx.waktu)}</span>
+    </div>
+    <div class="line"></div>
+    ${itemsHtml}
+    <div class="line"></div>
+    <div class="receipt-row total">
+      <span>TOTAL</span>
+      <span>${formatRupiah(trx.total)}</span>
+    </div>
+    <div class="receipt-row">
+      <span>Tunai</span>
+      <span>${formatRupiah(trx.bayar)}</span>
+    </div>
+    <div class="receipt-row">
+      <span>Kembali</span>
+      <span>${formatRupiah(trx.kembalian)}</span>
+    </div>
+    <div class="line"></div>
+    <div class="receipt-footer">Terima kasih telah berbelanja 🙏<br>Sampai jumpa lagi!</div>
+    <div class="receipt-actions">
+      <button class="btn-thermal" id="btnShareThermal">📲 Kirim ke Printer</button>
+      <button class="btn-print" id="btnPrintStruk">🖨️ Print Browser</button>
+      <button class="btn-close-receipt" id="btnCloseStruk">Tutup</button>
+    </div>
+    <div class="paper-width-toggle">
+      <span style="align-self:center;color:#888;">Lebar kertas:</span>
+      <button data-width="32" class="${paperWidth === 32 ? 'active' : ''}">58mm</button>
+      <button data-width="48" class="${paperWidth === 48 ? 'active' : ''}">80mm</button>
+    </div>
+  `;
+
+  document.getElementById('receiptOverlay').classList.add('show');
+
+  document.getElementById('btnPrintStruk').addEventListener('click', () => window.print());
+  document.getElementById('btnCloseStruk').addEventListener('click', () => {
+    document.getElementById('receiptOverlay').classList.remove('show');
+  });
+  document.getElementById('btnShareThermal').addEventListener('click', () => kirimKePrinterThermal(trx));
+
+  // toggle lebar kertas
+  box.querySelectorAll('.paper-width-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      paperWidth = Number(btn.dataset.width);
+      localStorage.setItem('kasir_paper_width', paperWidth);
+      box.querySelectorAll('.paper-width-toggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      showToast(`Lebar kertas diatur ke ${paperWidth === 32 ? '58mm' : '80mm'}`, 'info');
+    });
+  });
+}
+
+/* =================================================================
+   GENERATE TEKS STRUK UNTUK THERMAL PRINTER (plain text, monospace)
+   Disusun agar rapi di kertas 58mm (32 karakter) atau 80mm (48 karakter),
+   sesuai lebar yang dipilih kasir. Banyak app printer (termasuk RPP02N)
+   menerima teks polos ini melalui menu "import text" / paste / share.
+================================================================= */
+function padKananKiri(kiri, kanan, lebar) {
+  // Susun 2 kolom rata kiri & rata kanan dalam satu baris selebar `lebar`
+  kiri = String(kiri);
+  kanan = String(kanan);
+  const spasi = lebar - kiri.length - kanan.length;
+  if (spasi < 1) {
+    // kalau kepanjangan, potong kolom kiri supaya tidak pecah baris
+    const kiriDipotong = kiri.slice(0, Math.max(0, lebar - kanan.length - 1));
+    return kiriDipotong + ' '.repeat(Math.max(1, lebar - kiriDipotong.length - kanan.length)) + kanan;
+  }
+  return kiri + ' '.repeat(spasi) + kanan;
+}
+
+function tengahkanTeks(teks, lebar) {
+  teks = String(teks);
+  if (teks.length >= lebar) return teks.slice(0, lebar);
+  const totalSpasi = lebar - teks.length;
+  const kiri = Math.floor(totalSpasi / 2);
+  return ' '.repeat(kiri) + teks;
+}
+
+function generateTeksStrukThermal(trx, lebar) {
+  const garis = '-'.repeat(lebar);
+  let baris = [];
+
+  baris.push(tengahkanTeks('NASI GORENG AMBYAR', lebar));
+  baris.push(tengahkanTeks('Struk Transaksi', lebar));
+  baris.push(garis);
+  baris.push(padKananKiri(formatTanggalSingkat(trx.waktu), formatWaktu(trx.waktu), lebar));
+  baris.push(garis);
+
+  trx.items.forEach(item => {
+    baris.push(item.nama); // nama item baris sendiri, supaya nama panjang tidak terpotong
+    const detailKiri = `${item.qty} x ${formatRupiah(item.harga)}`;
+    const detailKanan = formatRupiah(item.qty * item.harga);
+    baris.push(padKananKiri(detailKiri, detailKanan, lebar));
+  });
+
+  baris.push(garis);
+  baris.push(padKananKiri('TOTAL', formatRupiah(trx.total), lebar));
+  baris.push(padKananKiri('Tunai', formatRupiah(trx.bayar), lebar));
+  baris.push(padKananKiri('Kembali', formatRupiah(trx.kembalian), lebar));
+  baris.push(garis);
+  baris.push(tengahkanTeks('Terima kasih!', lebar));
+  baris.push(tengahkanTeks('Sampai jumpa lagi', lebar));
+  baris.push(''); // baris kosong, ruang potong kertas
+  baris.push('');
+
+  return baris.join('\n');
+}
+
+/* =================================================================
+   KIRIM STRUK KE APP PRINTER THERMAL (via Web Share API Android)
+   Browser tidak bisa konek Bluetooth Classic (SPP) langsung ke printer
+   seperti RPP02N, jadi teks struk dikirim lewat "Share" bawaan Android
+   supaya bisa dipilih langsung ke app resmi printer untuk dicetak.
+================================================================= */
+async function kirimKePrinterThermal(trx) {
+  const teks = generateTeksStrukThermal(trx, paperWidth);
+
+  // Coba pakai Web Share API dulu (paling cepat, langsung muncul pilihan app)
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Struk Nasi Goreng Ambyar',
+        text: teks
+      });
+      showToast('Struk dikirim. Pilih app printer di daftar share.', 'success');
+      return;
+    } catch (err) {
+      // user membatalkan share, atau share gagal -> fallback ke copy
+      if (err && err.name === 'AbortError') {
+        return; // user sengaja batal, tidak perlu toast error
+      }
+    }
+  }
+
+  // Fallback: copy ke clipboard kalau Web Share tidak didukung
+  await copyTeksStruk(teks);
+}
+
+async function copyTeksStruk(teks) {
+  try {
+    await navigator.clipboard.writeText(teks);
+    showToast('Teks struk disalin. Paste di app printer kamu.', 'success');
+  } catch (err) {
+    showToast('Gagal menyalin otomatis. Salin manual dari struk.', 'error');
+  }
+}
+
+// klik di luar struk -> tutup modal
+document.getElementById('receiptOverlay').addEventListener('click', e => {
+  if (e.target.id === 'receiptOverlay') {
+    e.target.classList.remove('show');
+  }
+});
+
+/* =================================================================
+   LOCALSTORAGE: SIMPAN & MUAT KERANJANG SEMENTARA
+================================================================= */
+function saveCart() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+  } catch (err) {
+    console.warn('Gagal menyimpan keranjang ke localStorage:', err);
+  }
+}
+
+function loadCart() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) cart = parsed;
+    }
+  } catch (err) {
+    console.warn('Gagal memuat keranjang dari localStorage:', err);
+    cart = [];
+  }
+}
+
+/* =================================================================
+   INISIALISASI APLIKASI
+================================================================= */
+function init() {
+  loadCart();
+  renderMenu();
+  renderCart();
+  updateKembalian();
+}
+
+init();
+</script>
+</body>
+</html>
