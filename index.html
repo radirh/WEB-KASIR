@@ -172,6 +172,16 @@
     font-size:17px;
     color:var(--primary-dark);
   }
+  .menu-item .pedas-tag{
+    font-size:11px;
+    font-weight:700;
+    color:var(--red-dark);
+    background:#fdeceb;
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:6px;
+    align-self:flex-start;
+  }
   .menu-empty{
     grid-column:1/-1;
     text-align:center;
@@ -255,6 +265,20 @@
     font-size:13px;
     color:var(--text-soft);
   }
+  .cart-item .info .spicy-select{
+    margin-top:4px;
+  }
+  .spicy-select select{
+    font-size:12px;
+    font-weight:700;
+    padding:3px 6px;
+    border-radius:6px;
+    border:1.5px solid var(--border);
+    background:#fff;
+    color:var(--red-dark);
+    outline:none;
+  }
+  .spicy-select select:focus{ border-color:var(--primary); }
   .qty-ctrl{
     display:flex;
     align-items:center;
@@ -601,6 +625,65 @@
 
   ::-webkit-scrollbar{ width:8px; }
   ::-webkit-scrollbar-thumb{ background:#ccc; border-radius:4px; }
+
+  /* ===========================================================
+     MODAL PILIH LEVEL PEDAS
+  =========================================================== */
+  .spicy-modal-box{
+    background:#fff;
+    width:100%;
+    max-width:340px;
+    border-radius:16px;
+    padding:22px 20px;
+    box-shadow:var(--shadow-lg);
+  }
+  .spicy-modal-box h3{
+    margin:0 0 2px 0;
+    font-size:18px;
+    font-weight:800;
+    color:var(--text);
+  }
+  .spicy-modal-box .spicy-modal-harga{
+    font-size:14px;
+    color:var(--text-soft);
+    font-weight:600;
+    margin-bottom:16px;
+  }
+  .spicy-options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .spicy-option-btn{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    padding:14px 16px;
+    border-radius:12px;
+    border:2px solid var(--border);
+    background:var(--bg);
+    font-size:15px;
+    font-weight:700;
+    color:var(--text);
+    transition:all .12s;
+  }
+  .spicy-option-btn:hover{
+    border-color:var(--primary);
+    background:var(--primary-light);
+  }
+  .spicy-option-btn .emoji{ font-size:18px; }
+  .spicy-cancel-btn{
+    width:100%;
+    margin-top:14px;
+    padding:12px;
+    border-radius:10px;
+    background:var(--bg);
+    color:var(--text-soft);
+    font-weight:700;
+    font-size:14px;
+  }
+  .spicy-cancel-btn:hover{ background:var(--border); }
 </style>
 </head>
 <body>
@@ -706,55 +789,72 @@
   </div>
 </div>
 
+<!-- ============================ MODAL PILIH LEVEL PEDAS ============================ -->
+<div class="modal-overlay" id="spicyOverlay">
+  <div class="spicy-modal-box" id="spicyModalBox">
+    <!-- diisi via JS -->
+  </div>
+</div>
+
 <script>
 /* =================================================================
    DATA & STATE
 ================================================================= */
 
-// Daftar menu (sudah diperluas sesuai menu warung yang sebenarnya)
-const MENU = [
-  { id: 'm1',  nama: 'Nasi Goreng Ayam',           harga: 15000 },
-  { id: 'm2',  nama: 'Nasi Goreng Sosis',          harga: 16000 },
-  { id: 'm3',  nama: 'Nasi Goreng Bakso',          harga: 16000 },
-  { id: 'm4',  nama: 'Nasi Goreng Ati Ampela',     harga: 17000 },
-  { id: 'm5',  nama: 'Nasi Goreng Spesial',        harga: 25000 },
-  { id: 'm6', nama: 'Nasi Goreng Pete',            harga: 19000 },
-  { id: 'm7',  nama: 'Mie Goreng Ayam',            harga: 16000 },
-  { id: 'm8',  nama: 'Mie Goreng Sosis',           harga: 17000 },
-  { id: 'm9',  nama: 'Mie Goreng Bakso',           harga: 17000 },
-  { id: 'm10', nama: 'Mie Goreng Ati Ampela',      harga: 17000 },
-  { id: 'm11', nama: 'Mie Goreng Spesial',         harga: 26000 },
-  { id: 'm12', nama: 'Bihun Goreng Ayam',          harga: 16000 },
-  { id: 'm13', nama: 'Bihun Goreng Sosis',         harga: 17000 },
-  { id: 'm14', nama: 'Bihun Goreng Bakso',         harga: 17000 },
-  { id: 'm15', nama: 'Bihun Goreng Ati Ampela',    harga: 17000 },
-  { id: 'm16', nama: 'Bihun Goreng Spesial',       harga: 26000 },
-  { id: 'm17', nama: 'Mie Rebus Ayam',             harga: 16000 },
-  { id: 'm18', nama: 'Mie Rebus Sosis',            harga: 17000 },
-  { id: 'm19', nama: 'Mie Rebus Bakso',            harga: 17000 },
-  { id: 'm20', nama: 'Mie Rebus Ati Ampela',       harga: 17000 },
-  { id: 'm21', nama: 'Mie Rebus Spesial',          harga: 26000 },
-  { id: 'm22', nama: 'Kwetiau Goreng Ayam',        harga: 16000 },
-  { id: 'm23', nama: 'Kwetiau Goreng Sosis',       harga: 17000 },
-  { id: 'm24', nama: 'Kwetiau Goreng Bakso',       harga: 17000 },
-  { id: 'm25', nama: 'Kwetiau Goreng Ati Ampela',  harga: 17000 },
-  { id: 'm26', nama: 'Kwetiau Goreng Spesial',     harga: 26000 },
-  { id: 'm27', nama: 'Kwetiau Rebus Ayam',         harga: 16000 },
-  { id: 'm28', nama: 'Kwetiau Rebus Sosis',        harga: 17000 },
-  { id: 'm29', nama: 'Kwetiau Rebus Bakso',        harga: 17000 },
-  { id: 'm30', nama: 'Kwetiau Rebus Ati Ampela',   harga: 17000 },
-  { id: 'm31', nama: 'Indomie Goreng',             harga: 10000 },
-  { id: 'm32', nama: 'Indomie Goreng Aceh',        harga: 10000 },
-  { id: 'm33', nama: 'Indomie Goreng Rendang',     harga: 10000 },
-  {id: 'm34', nama: 'Indomie Rebus Seblak',        harga: 10000 },
-  {id: 'm35', nama: 'Indomie Rebus Soto',          harga: 10000 },
-  {id: 'm36', nama: 'Indomie Rebus Ayam Bawang',   harga: 10000 },
-  { id: 'm37', nama: 'Tambahan Bakso',             harga: 1000  },
-  { id: 'm38', nama: 'Tambahan Sosis',             harga: 1000  },
-  { id: 'm39', nama: 'Tambahan Telur',             harga: 5000  },
+// Level pedas yang tersedia, berurutan dari paling ringan ke paling pedas
+const LEVEL_PEDAS = [
+  { key: 'tidak',  label: 'Tidak Pedas', emoji: '⚪' },
+  { key: 'sedikit', label: 'Sedikit',    emoji: '🌶️' },
+  { key: 'sedang',  label: 'Sedang',     emoji: '🌶️🌶️' },
+  { key: 'pedas',   label: 'Pedas',      emoji: '🌶️🌶️🌶️' },
 ];
 
-// Keranjang: array of { id, nama, harga, qty, manual: true/false }
+// Daftar menu (sudah diperluas sesuai menu warung yang sebenarnya)
+// catatan: properti `pedas:true` menandakan menu ini punya pilihan level pedas.
+// Semua menu kecuali Indomie (m31-m36) dan item tambahan (m37-m39) diberi pedas:true.
+const MENU = [
+  { id: 'm1',  nama: 'Nasi Goreng Ayam',           harga: 15000, pedas: true },
+  { id: 'm2',  nama: 'Nasi Goreng Sosis',          harga: 16000, pedas: true },
+  { id: 'm3',  nama: 'Nasi Goreng Bakso',          harga: 16000, pedas: true },
+  { id: 'm4',  nama: 'Nasi Goreng Ati Ampela',     harga: 17000, pedas: true },
+  { id: 'm5',  nama: 'Nasi Goreng Spesial',        harga: 25000, pedas: true },
+  { id: 'm6',  nama: 'Nasi Goreng Pete',           harga: 19000, pedas: true },
+  { id: 'm7',  nama: 'Mie Goreng Ayam',            harga: 16000, pedas: true },
+  { id: 'm8',  nama: 'Mie Goreng Sosis',           harga: 17000, pedas: true },
+  { id: 'm9',  nama: 'Mie Goreng Bakso',           harga: 17000, pedas: true },
+  { id: 'm10', nama: 'Mie Goreng Ati Ampela',      harga: 17000, pedas: true },
+  { id: 'm11', nama: 'Mie Goreng Spesial',         harga: 26000, pedas: true },
+  { id: 'm12', nama: 'Bihun Goreng Ayam',          harga: 16000, pedas: true },
+  { id: 'm13', nama: 'Bihun Goreng Sosis',         harga: 17000, pedas: true },
+  { id: 'm14', nama: 'Bihun Goreng Bakso',         harga: 17000, pedas: true },
+  { id: 'm15', nama: 'Bihun Goreng Ati Ampela',    harga: 17000, pedas: true },
+  { id: 'm16', nama: 'Bihun Goreng Spesial',       harga: 26000, pedas: true },
+  { id: 'm17', nama: 'Mie Rebus Ayam',             harga: 16000, pedas: true },
+  { id: 'm18', nama: 'Mie Rebus Sosis',            harga: 17000, pedas: true },
+  { id: 'm19', nama: 'Mie Rebus Bakso',            harga: 17000, pedas: true },
+  { id: 'm20', nama: 'Mie Rebus Ati Ampela',       harga: 17000, pedas: true },
+  { id: 'm21', nama: 'Mie Rebus Spesial',          harga: 26000, pedas: true },
+  { id: 'm22', nama: 'Kwetiau Goreng Ayam',        harga: 16000, pedas: true },
+  { id: 'm23', nama: 'Kwetiau Goreng Sosis',       harga: 17000, pedas: true },
+  { id: 'm24', nama: 'Kwetiau Goreng Bakso',       harga: 17000, pedas: true },
+  { id: 'm25', nama: 'Kwetiau Goreng Ati Ampela',  harga: 17000, pedas: true },
+  { id: 'm26', nama: 'Kwetiau Goreng Spesial',     harga: 26000, pedas: true },
+  { id: 'm27', nama: 'Kwetiau Rebus Ayam',         harga: 16000, pedas: true },
+  { id: 'm28', nama: 'Kwetiau Rebus Sosis',        harga: 17000, pedas: true },
+  { id: 'm29', nama: 'Kwetiau Rebus Bakso',        harga: 17000, pedas: true },
+  { id: 'm30', nama: 'Kwetiau Rebus Ati Ampela',   harga: 17000, pedas: true },
+  { id: 'm31', nama: 'Indomie Goreng',             harga: 10000, pedas: false },
+  { id: 'm32', nama: 'Indomie Goreng Aceh',        harga: 10000, pedas: false },
+  { id: 'm33', nama: 'Indomie Goreng Rendang',     harga: 10000, pedas: false },
+  { id: 'm34', nama: 'Indomie Rebus Seblak',       harga: 10000, pedas: false },
+  { id: 'm35', nama: 'Indomie Rebus Soto',         harga: 10000, pedas: false },
+  { id: 'm36', nama: 'Indomie Rebus Ayam Bawang',  harga: 10000, pedas: false },
+  { id: 'm37', nama: 'Tambahan Bakso',             harga: 1000,  pedas: false },
+  { id: 'm38', nama: 'Tambahan Sosis',             harga: 1000,  pedas: false },
+  { id: 'm39', nama: 'Tambahan Telur',             harga: 5000,  pedas: false },
+];
+
+// Keranjang: array of { id, nama, harga, qty, manual: true/false, pedas: 'tidak'|'sedikit'|'sedang'|'pedas'|null }
 let cart = [];
 
 // localStorage key
@@ -766,6 +866,11 @@ const STORAGE_KEY = 'kasir_ambyar_cart';
 function formatRupiah(angka) {
   angka = Math.round(Number(angka) || 0);
   return 'Rp' + angka.toLocaleString('id-ID');
+}
+
+function getLevelLabel(key) {
+  const lv = LEVEL_PEDAS.find(l => l.key === key);
+  return lv ? lv.label : '';
 }
 
 /* =================================================================
@@ -835,6 +940,7 @@ function renderMenu(filter = '') {
     <button class="menu-item" data-id="${m.id}">
       <span class="nama">${escapeHtml(m.nama)}</span>
       <span class="harga">${formatRupiah(m.harga)}</span>
+      ${m.pedas ? `<span class="pedas-tag">🌶️ Pilih level pedas</span>` : ''}
     </button>
   `).join('');
 
@@ -842,7 +948,11 @@ function renderMenu(filter = '') {
   grid.querySelectorAll('.menu-item').forEach(btn => {
     btn.addEventListener('click', () => {
       const item = MENU.find(m => m.id === btn.dataset.id);
-      addToCart(item.nama, item.harga, false);
+      if (item.pedas) {
+        bukaModalPedas(item);
+      } else {
+        addToCart(item.nama, item.harga, false, null);
+      }
     });
   });
 }
@@ -854,9 +964,50 @@ function escapeHtml(str) {
 }
 
 /* =================================================================
+   MODAL PILIH LEVEL PEDAS
+================================================================= */
+function bukaModalPedas(item) {
+  const box = document.getElementById('spicyModalBox');
+
+  box.innerHTML = `
+    <h3>${escapeHtml(item.nama)}</h3>
+    <div class="spicy-modal-harga">${formatRupiah(item.harga)} &middot; Pilih level pedas</div>
+    <div class="spicy-options">
+      ${LEVEL_PEDAS.map(lv => `
+        <button class="spicy-option-btn" data-key="${lv.key}">
+          <span class="emoji">${lv.emoji}</span>
+          <span>${lv.label}</span>
+        </button>
+      `).join('')}
+    </div>
+    <button class="spicy-cancel-btn" id="btnBatalPedas">Batal</button>
+  `;
+
+  document.getElementById('spicyOverlay').classList.add('show');
+
+  box.querySelectorAll('.spicy-option-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      addToCart(item.nama, item.harga, false, btn.dataset.key);
+      tutupModalPedas();
+    });
+  });
+
+  document.getElementById('btnBatalPedas').addEventListener('click', tutupModalPedas);
+}
+
+function tutupModalPedas() {
+  document.getElementById('spicyOverlay').classList.remove('show');
+}
+
+// klik di luar kotak -> tutup modal pedas
+document.getElementById('spicyOverlay').addEventListener('click', e => {
+  if (e.target.id === 'spicyOverlay') tutupModalPedas();
+});
+
+/* =================================================================
    KERANJANG: TAMBAH / UBAH QTY / HAPUS
 ================================================================= */
-function addToCart(nama, harga, isManual) {
+function addToCart(nama, harga, isManual, pedasKey) {
   nama = nama.trim();
   harga = Number(harga);
 
@@ -869,8 +1020,13 @@ function addToCart(nama, harga, isManual) {
     return;
   }
 
-  // Jika item dengan nama & harga sama sudah ada di keranjang, tambah qty saja
-  const existing = cart.find(c => c.nama.toLowerCase() === nama.toLowerCase() && c.harga === harga);
+  // Jika item dengan nama, harga, & level pedas sama sudah ada di keranjang, tambah qty saja.
+  // Level pedas yang berbeda dianggap item baris terpisah supaya tidak tercampur di dapur.
+  const existing = cart.find(c =>
+    c.nama.toLowerCase() === nama.toLowerCase() &&
+    c.harga === harga &&
+    (c.pedas || null) === (pedasKey || null)
+  );
   if (existing) {
     existing.qty += 1;
   } else {
@@ -879,13 +1035,15 @@ function addToCart(nama, harga, isManual) {
       nama,
       harga,
       qty: 1,
-      manual: isManual
+      manual: isManual,
+      pedas: pedasKey || null
     });
   }
 
   saveCart();
   renderCart();
-  showToast(`${nama} ditambahkan`, 'success');
+  const labelPedas = pedasKey ? ` (${getLevelLabel(pedasKey)})` : '';
+  showToast(`${nama}${labelPedas} ditambahkan`, 'success');
 
   // Catatan: auto-focus ke input bayar TIDAK dilakukan di sini.
   // Di mobile, focus() pada input memicu keyboard muncul dan browser
@@ -904,6 +1062,14 @@ function changeQty(id, delta) {
     cart = cart.filter(c => c.id !== id);
     showToast(`${item.nama} dihapus dari keranjang`, 'info');
   }
+  saveCart();
+  renderCart();
+}
+
+function changePedas(id, newKey) {
+  const item = cart.find(c => c.id === id);
+  if (!item) return;
+  item.pedas = newKey || null;
   saveCart();
   renderCart();
 }
@@ -930,6 +1096,13 @@ function renderCart() {
         <div class="info">
           <div class="nm">${escapeHtml(item.nama)}${item.manual ? ' <span style="font-size:11px;color:#e85d2c;font-weight:700;">(manual)</span>' : ''}</div>
           <div class="pr">${formatRupiah(item.harga)} / item</div>
+          ${item.pedas !== null && item.pedas !== undefined ? `
+            <div class="spicy-select">
+              <select data-id="${item.id}">
+                ${LEVEL_PEDAS.map(lv => `<option value="${lv.key}" ${item.pedas === lv.key ? 'selected' : ''}>${lv.emoji} ${lv.label}</option>`).join('')}
+              </select>
+            </div>
+          ` : ''}
         </div>
         <div class="qty-ctrl">
           <button data-action="minus" data-id="${item.id}">−</button>
@@ -948,6 +1121,8 @@ function renderCart() {
       b.addEventListener('click', () => changeQty(b.dataset.id, -1)));
     list.querySelectorAll('[data-action="del"]').forEach(b =>
       b.addEventListener('click', () => removeItem(b.dataset.id)));
+    list.querySelectorAll('.spicy-select select').forEach(sel =>
+      sel.addEventListener('change', () => changePedas(sel.dataset.id, sel.value)));
   }
 
   updateSummary();
@@ -1049,7 +1224,8 @@ function tambahItemManual() {
     return;
   }
 
-  addToCart(nama, harga, true);
+  // Item manual tidak memiliki pilihan level pedas (mis. kerupuk, biaya antar, dll.)
+  addToCart(nama, harga, true, null);
 
   // reset form
   namaInput.value = '';
@@ -1072,13 +1248,18 @@ const searchInput = document.getElementById('searchInput');
 searchInput.addEventListener('input', () => renderMenu(searchInput.value));
 
 // Enter di search bar -> tambahkan menu hasil pencarian teratas (mempercepat transaksi)
+// Jika menu tersebut punya level pedas, buka modal pilih pedas dulu (bukan langsung masuk keranjang).
 searchInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     e.preventDefault();
     const keyword = searchInput.value.trim().toLowerCase();
     const found = MENU.find(m => m.nama.toLowerCase().includes(keyword));
     if (found) {
-      addToCart(found.nama, found.harga, false);
+      if (found.pedas) {
+        bukaModalPedas(found);
+      } else {
+        addToCart(found.nama, found.harga, false, null);
+      }
       searchInput.value = '';
       renderMenu('');
     } else {
@@ -1210,7 +1391,7 @@ function tampilkanStruk(trx) {
 
   const itemsHtml = trx.items.map(item => `
     <div class="receipt-item-row">
-      <div class="nm-row"><span>${escapeHtml(item.nama)}</span></div>
+      <div class="nm-row"><span>${escapeHtml(item.nama)}${item.pedas ? ` <span style="font-weight:400;">(${getLevelLabel(item.pedas)})</span>` : ''}</span></div>
       <div class="detail-row">
         <span>${item.qty} x ${formatRupiah(item.harga)}</span>
         <span>${formatRupiah(item.qty * item.harga)}</span>
