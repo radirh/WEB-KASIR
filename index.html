@@ -446,7 +446,7 @@
     opacity:0;
     transform:translateX(40px);
     transition:all .25s ease;
-    max-width:280px;
+    max-width:320px;
   }
   .toast.show{ opacity:1; transform:translateX(0); }
   .toast.success{ background:var(--green-dark); }
@@ -737,10 +737,13 @@ function showToast(message, type = 'info') {
   // trigger animasi masuk
   requestAnimationFrame(() => toast.classList.add('show'));
 
+  // pesan panjang (mis. instruksi langkah-langkah) ditampilkan lebih lama agar terbaca
+  const durasi = message.length > 50 ? 4000 : 2200;
+
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 250);
-  }, 2200);
+  }, durasi);
 }
 
 /* =================================================================
@@ -1177,7 +1180,8 @@ function tampilkanStruk(trx) {
     <div class="line"></div>
     <div class="receipt-footer">Terima kasih telah berbelanja 🙏<br>Sampai jumpa lagi!</div>
     <div class="receipt-actions">
-      <button class="btn-thermal" id="btnShareThermal">📲 Kirim ke Printer</button>
+      <button class="btn-thermal" id="btnCopyThermal">📋 Copy Teks Struk</button>
+      <button class="btn-print" id="btnShareThermal">📲 Share (opsional)</button>
       <button class="btn-print" id="btnPrintStruk">🖨️ Print Browser</button>
       <button class="btn-close-receipt" id="btnCloseStruk">Tutup</button>
     </div>
@@ -1194,6 +1198,7 @@ function tampilkanStruk(trx) {
   document.getElementById('btnCloseStruk').addEventListener('click', () => {
     document.getElementById('receiptOverlay').classList.remove('show');
   });
+  document.getElementById('btnCopyThermal').addEventListener('click', () => copyTeksStruk(generateTeksStrukThermal(trx, paperWidth)));
   document.getElementById('btnShareThermal').addEventListener('click', () => kirimKePrinterThermal(trx));
 
   // toggle lebar kertas
@@ -1266,25 +1271,43 @@ function generateTeksStrukThermal(trx, lebar) {
 }
 
 /* =================================================================
-   KIRIM STRUK KE APP PRINTER THERMAL (via Web Share API Android)
-   Browser tidak bisa konek Bluetooth Classic (SPP) langsung ke printer
-   seperti RPP02N, jadi teks struk dikirim lewat "Share" bawaan Android
-   supaya bisa dipilih langsung ke app resmi printer untuk dicetak.
+   COPY TEKS STRUK KE CLIPBOARD (jalur utama untuk RPP02N & sejenisnya)
+   Printer Bluetooth Classic (SPP) seperti RPP02N hanya bisa terhubung
+   ke SATU app pada satu waktu (app resminya). Karena itu, teks struk
+   tidak dikirim lewat koneksi Bluetooth langsung dari browser, tapi
+   disalin ke clipboard agar kasir tinggal PASTE di menu
+   "Import/Paste Text" pada app RPP02N, lalu printer mencetaknya.
+================================================================= */
+async function copyTeksStruk(teks) {
+  try {
+    await navigator.clipboard.writeText(teks);
+    showToast('Teks struk disalin! Buka app RPP02N → menu "Import/Paste Text" → Paste → Print.', 'success');
+  } catch (err) {
+    showToast('Gagal menyalin otomatis. Tahan tombol di area struk untuk salin manual.', 'error');
+  }
+}
+
+/* =================================================================
+   KIRIM STRUK VIA WEB SHARE API (opsional, cadangan)
+   Catatan: ini BUKAN koneksi Bluetooth ke printer. Share hanya
+   meneruskan teks ke app lain yang terdaftar sebagai "Share Target"
+   di Android. Beberapa app printer thermal tidak mendaftarkan diri
+   di menu share, sehingga teks bisa gagal diterima sebagai print job
+   walau app-nya muncul di daftar. Kalau ini tidak berhasil, gunakan
+   tombol "Copy Teks Struk" lalu paste manual di app printer.
 ================================================================= */
 async function kirimKePrinterThermal(trx) {
   const teks = generateTeksStrukThermal(trx, paperWidth);
 
-  // Coba pakai Web Share API dulu (paling cepat, langsung muncul pilihan app)
   if (navigator.share) {
     try {
       await navigator.share({
         title: 'Struk Nasi Goreng Ambyar',
         text: teks
       });
-      showToast('Struk dikirim. Pilih app printer di daftar share.', 'success');
+      showToast('Struk dibagikan. Kalau printer tidak mencetak, pakai "Copy Teks Struk".', 'info');
       return;
     } catch (err) {
-      // user membatalkan share, atau share gagal -> fallback ke copy
       if (err && err.name === 'AbortError') {
         return; // user sengaja batal, tidak perlu toast error
       }
@@ -1293,15 +1316,6 @@ async function kirimKePrinterThermal(trx) {
 
   // Fallback: copy ke clipboard kalau Web Share tidak didukung
   await copyTeksStruk(teks);
-}
-
-async function copyTeksStruk(teks) {
-  try {
-    await navigator.clipboard.writeText(teks);
-    showToast('Teks struk disalin. Paste di app printer kamu.', 'success');
-  } catch (err) {
-    showToast('Gagal menyalin otomatis. Salin manual dari struk.', 'error');
-  }
 }
 
 // klik di luar struk -> tutup modal
